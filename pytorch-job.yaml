@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pytorch-example
+spec:
+  backoffLimit: 5
+  template:
+    spec:
+      imagePullSecrets:
+        - name: nvcr.dgxkey
+      containers:
+        - name: pytorch-container
+          image: nvcr.io/nvidia/pytorch:18.08-py3
+          command: ["/bin/sh"]
+          args: ["-c", "python /workspace/examples/upstream/mnist/main.py"]
+          extendedResourceRequests: ["nvidia-gpu"]
+      restartPolicy: Never
+      extendedResources:
+        - name: "nvidia-gpu"
+          resources:
+            limits:
+              nvidia.com/gpu: 4
+            requests:
+              nvidia.com/gpu: 4
+

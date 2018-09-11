@@ -1,0 +1,48 @@
+piVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tensorrt-deployment
+  labels:
+    app: tensorrt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tensorrt
+  template:
+    metadata:
+      labels:
+        app: tensorrt
+    spec:
+      imagePullSecrets:
+        - name: nvcr.dgxkey
+      containers:
+        - name: tensorrt-container
+          image: nvcr.io/nvidia/tensorrt:17.12
+          command: ["/bin/sh"]
+          args: ["-c", "tensorrt_server/onnx_inception_v1"]
+          ports:
+            - containerPort: 8000
+          extendedResourceRequests: ["nvidia-gpu"]
+      extendedResources:
+        - name: "nvidia-gpu"
+          resources:
+            limits:
+              nvidia.com/gpu: 4
+            requests:
+              nvidia.com/gpu: 4
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: tensorrt-service
+  name: tensorrt-service
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: tensorrt-server
+  type: NodePort
+
